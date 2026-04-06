@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import stripe
 import os
@@ -33,7 +32,7 @@ async def premium_payment_1(request: Request):
 
   if event["type"] == "checkout.session.completed":
     session = event["data"]["object"]
-    username = session.get("client_reference_id")
+    username = session["client_reference_id"]
 
     if username:
       supabase.table("User_Login_Data").update(
