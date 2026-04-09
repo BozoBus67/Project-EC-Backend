@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from datetime import date, timedelta, timezone
-from epstein_clicker.backend.initialiations_and_declarations.db_initialization import supabase
+from initialisations_and_declarations.db_initialization import supabase
 from utils import require_user
 
 router = APIRouter()

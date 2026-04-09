@@ -1,4 +1,4 @@
-import epstein_clicker.backend.constants.constants as Constants
+import constants.constants as Constants
 
 # prices are in tokens
 ACCOUNT_TIERS = [

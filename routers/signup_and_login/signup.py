@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from initialisations_and_declarations.db_initialization import supabase
-from initialisations_and_declarations.scroll_declarations import MASTERY_SCROLLS
 from initialisations_and_declarations.premium_game_data_declarations import INITIAL_PREMIUM_GAME_DATA
 
 router = APIRouter()

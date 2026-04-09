@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from epstein_clicker.backend.initialiations_and_declarations.scroll_declarations import MASTERY_SCROLLS
+from initialisations_and_declarations.scroll_declarations import MASTERY_SCROLLS
 
 router = APIRouter()
 
