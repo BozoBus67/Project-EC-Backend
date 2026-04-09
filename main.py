@@ -7,11 +7,12 @@ import os
 load_dotenv()
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-from payments import router as payments_router
-from tokens import router as tokens_router
-from auction_house import router as auction_house_router
-from mastery_scrolls import router as mastery_scrolls_router
-from signup import router as signup_router
+from routers.payments import router as payments_router
+from epstein_clicker.backend.routers.tokens import router as tokens_router
+from routers.auction_house import router as auction_house_router
+from routers.mastery_scrolls import router as mastery_scrolls_router
+from epstein_clicker.backend.routers.signup_and_login.signup import router as signup_router
+from routers.account_tiers import router as account_tiers_router
 
 app = FastAPI()
 
@@ -27,6 +28,7 @@ app.include_router(tokens_router)
 app.include_router(auction_house_router)
 app.include_router(mastery_scrolls_router)
 app.include_router(signup_router)
+app.include_router(account_tiers_router)
 
 @app.get("/")
 def root():

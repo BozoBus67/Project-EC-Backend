@@ -1,4 +1,4 @@
-import constants
+import epstein_clicker.backend.constants.constants as constants
 
 SCROLL_TIERS = [
   {"min": 1, "tier": 1},

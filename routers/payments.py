@@ -3,7 +3,7 @@ from fastapi import APIRouter, Request, HTTPException
 from dotenv import load_dotenv
 import stripe
 import os
-from db_initialization import supabase
+from epstein_clicker.backend.initialiations_and_declarations.db_initialization import supabase
 
 load_dotenv()
 

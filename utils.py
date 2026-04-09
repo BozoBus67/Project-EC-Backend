@@ -1,7 +1,8 @@
 import random
 from fastapi import HTTPException
-from db_initialization import supabase
-from scroll_declarations import SCROLL_TIERS, MASTERY_SCROLLS
+from initialisations_and_declarations.db_initialization import supabase
+from initialisations_and_declarations.scroll_declarations import SCROLL_TIERS, MASTERY_SCROLLS
+import constants.constants as Constants
 
 def get_user(username: str):
   result = (supabase.table("User_Login_Data")
@@ -25,10 +26,18 @@ def get_scroll_tier(count: int) -> int:
   return tier
 
 def increase_mastery_scroll(user_uuid: str, scroll_id: str, amount: int = 1):
-  user = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user_uuid).single().execute().data
+  user = (supabase.table("User_Login_Data")
+    .select("premium_game_data")
+    .eq("id", user_uuid)
+    .single()
+    .execute()
+    .data)
   pgd = user["premium_game_data"]
   pgd[scroll_id] = pgd[scroll_id] + amount
-  supabase.table("User_Login_Data").update({"premium_game_data": pgd}).eq("id", user_uuid).execute()
+  (supabase.table("User_Login_Data")
+    .update({"premium_game_data": pgd})
+    .eq("id", user_uuid)
+    .execute())
 
 def get_random_scroll_id() -> str:
   return random.choice(list(MASTERY_SCROLLS.keys()))
