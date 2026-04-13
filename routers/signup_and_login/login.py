@@ -16,12 +16,12 @@ def login(body: LoginRequest):
     "id, username, email, password, game_data, premium_game_data"
   ).or_(
     f"username.eq.{body.username_or_email},email.eq.{body.username_or_email}"
-  ).eq("password", body.password).single().execute()
+  ).eq("password", body.password).execute()
 
   if not result.data:
-    raise HTTPException(status_code=401, detail="Invalid username or password")
+    raise HTTPException(status_code=401, detail="Invalid credentials")
 
-  user = result.data
+  user = result.data[0]
   user["game_data"] = migrate_game_data(user["game_data"])
 
   supabase.table("User_Login_Data").update({
