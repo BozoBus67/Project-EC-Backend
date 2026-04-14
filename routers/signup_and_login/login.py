@@ -24,13 +24,19 @@ def login(body: LoginRequest):
     if not row.data:
       raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    auth_user = supabase.auth.admin.get_user_by_id(row.data[0]["id"])
-    if not auth_user.user:
+    try:
+      auth_user = supabase.auth.admin.get_user_by_id(row.data[0]["id"])
+      if not auth_user.user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+      email = auth_user.user.email
+    except HTTPException:
+      raise
+    except Exception:
       raise HTTPException(status_code=401, detail="Invalid credentials")
 
     try:
       auth_result = supabase.auth.sign_in_with_password({
-        "email": auth_user.user.email,
+        "email": email,
         "password": body.password,
       })
     except Exception:
