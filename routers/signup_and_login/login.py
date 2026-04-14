@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from datetime import datetime, timezone
 from initializations_and_declarations.db_initialization import supabase
 from utils import migrate_game_data
 
@@ -12,20 +11,39 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 def login(body: LoginRequest):
+  if "@" in body.username_or_email:
+    email = body.username_or_email
+  else:
+    row = supabase.table("User_Login_Data").select("email").eq(
+      "username", body.username_or_email
+    ).execute()
+    if not row.data:
+      raise HTTPException(status_code=401, detail="Invalid credentials")
+    email = row.data[0]["email"]
+
+  try:
+    auth_result = supabase.auth.sign_in_with_password({
+      "email": email,
+      "password": body.password,
+    })
+  except Exception:
+    raise HTTPException(status_code=401, detail="Invalid credentials")
+
+  user_id = auth_result.user.id
+  jwt = auth_result.session.access_token
+
   result = supabase.table("User_Login_Data").select(
-    "id, username, email, password, game_data, premium_game_data"
-  ).or_(
-    f"username.eq.{body.username_or_email},email.eq.{body.username_or_email}"
-  ).eq("password", body.password).execute()
+    "id, username, game_data, premium_game_data"
+  ).eq("id", user_id).execute()
 
   if not result.data:
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+    raise HTTPException(status_code=404, detail="User data not found")
 
   user = result.data[0]
   user["game_data"] = migrate_game_data(user["game_data"])
 
-  supabase.table("User_Login_Data").update({
-    "last_login_time": datetime.now(timezone.utc).isoformat(),
-  }).eq("id", user["id"]).execute()
-
-  return {"status": "ok", "user": user}
+  return {
+    "status": "ok",
+    "jwt": jwt,
+    "user": user,
+  }

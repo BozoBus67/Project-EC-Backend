@@ -14,14 +14,25 @@ class SignUpRequest(BaseModel):
 @router.post("/signup")
 def signup(body: SignUpRequest):
   try:
-    result = supabase.table("User_Login_Data").insert({
+    auth_result = supabase.auth.admin.create_user({
       "email": body.email,
-      "username": body.username,
       "password": body.password,
+      "email_confirm": False,
+    })
+  except Exception:
+    raise HTTPException(status_code=400, detail="Email already registered")
+
+  user_id = auth_result.user.id
+
+  try:
+    result = supabase.table("User_Login_Data").insert({
+      "id": user_id,
+      "username": body.username,
       "game_data": INITIAL_GAME_DATA,
       "premium_game_data": INITIAL_PREMIUM_GAME_DATA,
     }).execute()
   except Exception:
-    raise HTTPException(status_code=400, detail="Username or email already taken")
+    supabase.auth.admin.delete_user(user_id)
+    raise HTTPException(status_code=400, detail="Username already taken")
 
-  return {"status": "ok", "user": result.data[0]}
+  return {"status": "ok"}

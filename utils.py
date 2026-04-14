@@ -1,29 +1,28 @@
 import random
-from fastapi import HTTPException
+from fastapi import HTTPException, Header
 from initializations_and_declarations.db_initialization import supabase
 from initializations_and_declarations.scroll_declarations import SCROLL_TIERS, MASTERY_SCROLLS
 from initializations_and_declarations.game_data_declarations import INITIAL_GAME_DATA
 import constants.constants as Constants
 
-def get_user(username: str):
-  result = (supabase.table("User_Login_Data")
-    .select("*")
-    .eq("username", username)
-    .single()
-    .execute())
-  return result.data
-
-def require_user(username: str):
-  user = get_user(username)
-  if not user:
-    raise HTTPException(status_code=404, detail="User not found")
-  return user
+def require_user(authorization: str = Header(...)):
+  if not authorization.startswith("Bearer "):
+    raise HTTPException(status_code=401, detail="Invalid authorization header")
+  token = authorization.removeprefix("Bearer ")
+  try:
+    result = supabase.auth.get_user(token)
+  except Exception:
+    raise HTTPException(status_code=401, detail="Invalid or expired token")
+  if not result.user:
+    raise HTTPException(status_code=401, detail="Invalid or expired token")
+  return result.user
 
 def migrate_game_data(saved: dict) -> dict:
   migrated = {**INITIAL_GAME_DATA, **saved}
+  valid_building_keys = set(INITIAL_GAME_DATA["buildings"].keys())
   migrated["buildings"] = {
-    **INITIAL_GAME_DATA["buildings"],
-    **saved.get("buildings", {}),
+    key: saved.get("buildings", {}).get(key, 0)
+    for key in valid_building_keys
   }
   migrated["version"] = INITIAL_GAME_DATA["version"]
   return migrated

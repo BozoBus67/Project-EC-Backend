@@ -24,12 +24,17 @@ async def premium_payment_1(request: Request):
 
   if event["type"] == "checkout.session.completed":
     session = event["data"]["object"]
-    username = session["client_reference_id"]
+    user_id = session["client_reference_id"]
 
-    if username:
-      supabase.table("User_Login_Data").update(
-        {"account_tier": "premium"}
-      ).eq("username", username).execute()
+    if user_id:
+      supabase.table("User_Login_Data").update({
+        "premium_game_data": supabase.table("User_Login_Data")
+          .select("premium_game_data")
+          .eq("id", user_id)
+          .single()
+          .execute()
+          .data["premium_game_data"] | {"account_tier": "premium"}
+      }).eq("id", user_id).execute()
     else:
       print("WARNING: no client_reference_id in checkout session")
 
