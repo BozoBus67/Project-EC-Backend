@@ -21,6 +21,7 @@ def login(body: LoginRequest):
       "password": body.password,
     })
   except Exception as e:
+    print(f"[login] sign_in_with_password failed: {e}")
     if "Email not confirmed" in str(e):
       raise HTTPException(status_code=401, detail="Please confirm your email before logging in.")
 
