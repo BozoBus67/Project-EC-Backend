@@ -18,7 +18,7 @@ def daily_checkin(user=Depends(require_user)):
   tokens = pgd["tokens"]
 
   if last == today:
-    return {"already_checked_in": True, "tokens": tokens, "streak": streak}
+    return {"already_checked_in": True, "streak": streak, "premium_game_data": pgd}
 
   yesterday = (datetime.now(timezone.utc).date() - timedelta(days=1)).isoformat()
   streak = streak + 1 if last == yesterday else 1
@@ -34,7 +34,7 @@ def daily_checkin(user=Depends(require_user)):
 
   return {
     "already_checked_in": False,
-    "tokens": pgd["tokens"],
     "streak": streak,
     "tokens_granted": tokens_to_grant,
+    "premium_game_data": pgd,
   }

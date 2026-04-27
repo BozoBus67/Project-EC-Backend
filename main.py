@@ -13,6 +13,7 @@ from routers.auction_house import router as auction_house_router
 from routers.mastery_scrolls import router as mastery_scrolls_router
 from routers.signup_and_login.signup import router as signup_router
 from routers.signup_and_login.login import router as login_router
+from routers.signup_and_login.me import router as me_router
 from routers.account_tiers import router as account_tiers_router
 from routers.game_data import router as game_data_router
 
@@ -31,6 +32,7 @@ app.include_router(auction_house_router)
 app.include_router(mastery_scrolls_router)
 app.include_router(signup_router)
 app.include_router(login_router)
+app.include_router(me_router)
 app.include_router(account_tiers_router)
 app.include_router(game_data_router)
 

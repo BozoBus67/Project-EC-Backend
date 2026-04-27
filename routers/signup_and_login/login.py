@@ -5,7 +5,7 @@ from utils import migrate_game_data
 
 router = APIRouter()
 
-INVALID_CREDENTIALS = "Incorrect username, email, or password"
+INVALID_CREDENTIALS = "Incorrect username/email or password"
 
 class LoginRequest(BaseModel):
   username_or_email: str
@@ -13,64 +13,49 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 def login(body: LoginRequest):
-  # first try input directly as an email
-  # if it's not an email or doesn't exist, supabase throws — fall through to username path
-  try:
-    auth_result = supabase.auth.sign_in_with_password({
-      "email": body.username_or_email,
-      "password": body.password,
-    })
-  except Exception as e:
-    print(f"[login] sign_in_with_password failed: {e}")
-    if "Email not confirmed" in str(e):
-      raise HTTPException(status_code=401, detail="Please confirm your email before logging in.")
+  email = body.username_or_email
 
-    # look up the username in our table to get the uuid
-    row = supabase.table("User_Login_Data").select("id").eq(
-      "username", body.username_or_email
-    ).execute()
+  # no @ means it's a username — resolve it to an email via our table
+  if "@" not in body.username_or_email:
+    row = supabase.table("User_Login_Data").select("id").eq("username", body.username_or_email).execute()
     if not row.data:
       raise HTTPException(status_code=401, detail=INVALID_CREDENTIALS)
 
-    # use the uuid to get the email from supabase auth
-    # this can fail if the account predates the auth migration
-    try:
-      auth_user = supabase.auth.admin.get_user_by_id(row.data[0]["id"])
-      if not auth_user.user:
-        raise HTTPException(status_code=401, detail=INVALID_CREDENTIALS)
-      email = auth_user.user.email
-    except HTTPException:
-      raise  # re-raise our own 401, don't swallow it
-    except Exception:
-      raise HTTPException(status_code=401, detail=INVALID_CREDENTIALS)
+    auth_user = supabase.auth.admin.get_user_by_id(row.data[0]["id"])
+    if not auth_user.user:
+      # username row exists but auth row is gone — shouldn't happen, means data got out of sync
+      raise HTTPException(status_code=500, detail="Account inconsistency — contact support")
 
-    # now sign in with the resolved email
-    try:
-      auth_result = supabase.auth.sign_in_with_password({
-        "email": email,
-        "password": body.password,
-      })
-    except Exception as e:
-      if "Email not confirmed" in str(e):
-        raise HTTPException(status_code=401, detail="Please confirm your email before logging in.")
+    email = auth_user.user.email
+
+  # auth table
+  try:
+    auth_result = supabase.auth.sign_in_with_password({"email": email, "password": body.password})
+  except Exception as e:
+    print(f"[login] sign_in_with_password error: {e}")
+    msg = str(e)
+    if "Email not confirmed" in msg:
+      raise HTTPException(status_code=401, detail="Please confirm your email before logging in")
+    if "Invalid login credentials" in msg:
       raise HTTPException(status_code=401, detail=INVALID_CREDENTIALS)
+    if any(k in msg.lower() for k in ("rate limit", "too many", "limit exceeded", "over_email_send_rate_limit")):
+      raise HTTPException(status_code=429, detail="Too many login attempts — try again later")
+    raise HTTPException(status_code=500, detail="An unknown error occurred — please try again")
 
   user_id = auth_result.user.id
   jwt = auth_result.session.access_token
 
-  # fetch game data from our table using the verified uuid
-  result = supabase.table("User_Login_Data").select(
-    "id, username, game_data, premium_game_data"
-  ).eq("id", user_id).execute()
+  # user data table
+  result = supabase.table("User_Login_Data").select("*").eq("id", user_id).execute()
+
+  # email lives in auth, not our table — pull it from the verified session
+  email = auth_result.user.email
 
   if not result.data:
-    raise HTTPException(status_code=404, detail="Account data not found")
+    raise HTTPException(status_code=404, detail="Account data not found — contact support")
 
   user = result.data[0]
+  user["email"] = email
   user["game_data"] = migrate_game_data(user["game_data"])
 
-  return {
-    "status": "ok",
-    "jwt": jwt,
-    "user": user,
-  }
+  return {"status": "ok", "jwt": jwt, "user": user}
