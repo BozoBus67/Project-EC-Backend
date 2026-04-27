@@ -20,8 +20,13 @@ def signup(body: SignUpRequest):
       "password": body.password,
       "email_confirm": True,
     })
-  except Exception:
-    raise HTTPException(status_code=409, detail="Email already registered")
+  except Exception as e:
+    msg = str(e).lower()
+    if "already registered" in msg or "already exists" in msg or "duplicate" in msg:
+      raise HTTPException(status_code=409, detail="Email already registered")
+    if "invalid" in msg or "unable to validate" in msg:
+      raise HTTPException(status_code=400, detail="Invalid email address")
+    raise HTTPException(status_code=400, detail=str(e))
 
   user_id = auth_result.user.id
 
