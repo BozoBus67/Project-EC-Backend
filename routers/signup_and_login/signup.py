@@ -10,9 +10,10 @@ DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
 def notify_discord_signup(username: str, email: str):
   try:
-    httpx.post(DISCORD_WEBHOOK_URL, json={"content": f"New signup: **{username}** ({email})"})
-  except Exception:
-    pass
+    res = httpx.post(DISCORD_WEBHOOK_URL, json={"content": f"New signup: **{username}** ({email})"})
+    print(f"[discord] status={res.status_code} body={res.text}")
+  except Exception as e:
+    print(f"[discord] error: {e}")
 
 router = APIRouter()
 
