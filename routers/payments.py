@@ -21,8 +21,8 @@ async def stripe_webhook(request: Request):
     return {"status": "ignored", "reason": f"unhandled event type: {event['type']}"}
 
   session = event["data"]["object"]
-  user_id = session.get("client_reference_id")
-  amount_total = session.get("amount_total")
+  user_id = getattr(session, "client_reference_id", None)
+  amount_total = getattr(session, "amount_total", None)
 
   if not user_id:
     raise HTTPException(status_code=400, detail="Missing client_reference_id")
