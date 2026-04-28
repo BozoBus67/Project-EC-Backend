@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Literal
 from datetime import datetime, timezone
-from utils import require_user, spend_tokens, add_tokens
+from utils import require_user, spend_tokens, add_tokens, spend_cookies, add_cookies
 from initializations_and_declarations.db_initialization import supabase
 
 router = APIRouter()
@@ -18,8 +18,13 @@ class ListingRequest(BaseModel):
 
 @router.post("/create_listing")
 def create_listing(body: CreateListingRequest, user=Depends(require_user)):
+  if body.amount <= 0 or body.price <= 0:
+    raise HTTPException(status_code=400, detail="Amount and price must be positive")
+
   if body.listing_type == "tokens":
     spend_tokens(user.id, body.amount)
+  elif body.listing_type == "cookies":
+    spend_cookies(user.id, body.amount)
 
   user_row = supabase.table("User_Login_Data").select("username").eq("id", user.id).single().execute()
   username = user_row.data["username"]
@@ -57,13 +62,19 @@ def buy_listing(body: ListingRequest, user=Depends(require_user)):
   if listing["price_item_type"] == "tokens":
     spend_tokens(user.id, listing["price_item_amount"])
     add_tokens(seller_id, listing["price_item_amount"])
+  elif listing["price_item_type"] == "cookies":
+    spend_cookies(user.id, listing["price_item_amount"])
+    add_cookies(seller_id, listing["price_item_amount"])
 
   if listing["selling_item_type"] == "tokens":
     add_tokens(user.id, listing["amount"])
+  elif listing["selling_item_type"] == "cookies":
+    add_cookies(user.id, listing["amount"])
 
   supabase.table("Auction_House").delete().eq("id", body.listing_id).execute()
 
-  return {"status": "ok", "listing": listing}
+  buyer_data = supabase.table("User_Login_Data").select("game_data, premium_game_data").eq("id", user.id).single().execute().data
+  return {"status": "ok", "listing": listing, "game_data": buyer_data["game_data"], "premium_game_data": buyer_data["premium_game_data"]}
 
 @router.post("/cancel_listing")
 def cancel_listing(body: ListingRequest, user=Depends(require_user)):
@@ -78,6 +89,8 @@ def cancel_listing(body: ListingRequest, user=Depends(require_user)):
 
   if listing["selling_item_type"] == "tokens":
     add_tokens(user.id, listing["amount"])
+  elif listing["selling_item_type"] == "cookies":
+    add_cookies(user.id, listing["amount"])
 
   supabase.table("Auction_House").delete().eq("id", body.listing_id).execute()
 
