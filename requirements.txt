@@ -3,3 +3,4 @@ uvicorn
 stripe
 supabase
 python-dotenv
+httpx

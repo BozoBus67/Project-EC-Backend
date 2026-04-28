@@ -3,6 +3,16 @@ from pydantic import BaseModel
 from db.client import supabase
 from data.game_data import INITIAL_GAME_DATA
 from data.premium_game_data import INITIAL_PREMIUM_GAME_DATA
+import httpx
+import os
+
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+
+def notify_discord_signup(username: str, email: str):
+  try:
+    httpx.post(DISCORD_WEBHOOK_URL, json={"content": f"New signup: **{username}** ({email})"})
+  except Exception:
+    pass
 
 router = APIRouter()
 
@@ -54,6 +64,8 @@ def signup(body: SignUpRequest):
   except Exception as e:
     print(f"[signup] post-signup sign_in error: {e}")
     raise HTTPException(status_code=500, detail=f"Account created but auto-login failed: {e}")
+
+  notify_discord_signup(body.username, body.email)
 
   return {
     "status": "ok",
