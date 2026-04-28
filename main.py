@@ -17,6 +17,7 @@ from routers.signup_and_login.me import router as me_router
 from routers.account_tiers import router as account_tiers_router
 from routers.game_data import router as game_data_router
 from routers.gamble import router as gamble_router
+from routers.redeem_tokens import router as redeem_tokens_router
 
 app = FastAPI()
 
@@ -37,6 +38,7 @@ app.include_router(me_router)
 app.include_router(account_tiers_router)
 app.include_router(game_data_router)
 app.include_router(gamble_router)
+app.include_router(redeem_tokens_router)
 
 @app.get("/")
 def root():
