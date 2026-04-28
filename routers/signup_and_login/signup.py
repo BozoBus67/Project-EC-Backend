@@ -48,6 +48,7 @@ def signup(body: SignUpRequest):
     supabase.table("User_Login_Data").insert({
       "id": user_id,
       "username": body.username,
+      "email": body.email,
       "game_data": INITIAL_GAME_DATA,
       "premium_game_data": INITIAL_PREMIUM_GAME_DATA,
     }).execute()

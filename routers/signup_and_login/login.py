@@ -16,13 +16,12 @@ def login(body: LoginRequest):
   email = body.username_or_email
 
   if "@" not in body.username_or_email:
-    row = supabase.table("User_Login_Data").select("id").eq("username", body.username_or_email).execute()
+    row = supabase.table("User_Login_Data").select("id, email").eq("username", body.username_or_email).execute()
     if not row.data:
       raise HTTPException(status_code=401, detail=INVALID_CREDENTIALS)
-    auth_user = supabase.auth.admin.get_user_by_id(row.data[0]["id"])
-    if not auth_user.user:
+    email = row.data[0].get("email")
+    if not email:
       raise HTTPException(status_code=500, detail="Account inconsistency — contact support")
-    email = auth_user.user.email
 
   try:
     auth_result = supabase.auth.sign_in_with_password({"email": email, "password": body.password})
