@@ -1,7 +1,7 @@
 SLOT_REEL_LENGTH = 10
 
-MASTERY_SCROLL_1_NAME = "mastery_scroll_1"
-MASTERY_SCROLL_2_NAME = "mastery_scroll_2"
+MASTERY_SCROLL_1_NAME = "Epstein Spinjitzu"
+MASTERY_SCROLL_2_NAME = "Domain Expansion"
 MASTERY_SCROLL_3_NAME = "mastery_scroll_3"
 MASTERY_SCROLL_4_NAME = "mastery_scroll_4"
 MASTERY_SCROLL_5_NAME = "mastery_scroll_5"
