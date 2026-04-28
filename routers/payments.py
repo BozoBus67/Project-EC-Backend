@@ -17,22 +17,24 @@ async def stripe_webhook(request: Request):
   except Exception:
     raise HTTPException(status_code=400, detail="Invalid signature")
 
-  if event["type"] == "checkout.session.completed":
-    session = event["data"]["object"]
-    user_id = session.get("client_reference_id")
-    amount_total = session.get("amount_total")
+  if event["type"] != "checkout.session.completed":
+    return {"status": "ignored", "reason": f"unhandled event type: {event['type']}"}
 
-    if not user_id:
-      raise HTTPException(status_code=400, detail="Missing client_reference_id")
-    if not amount_total:
-      raise HTTPException(status_code=400, detail="Missing amount_total")
+  session = event["data"]["object"]
+  user_id = session.get("client_reference_id")
+  amount_total = session.get("amount_total")
 
-    tokens = amount_total // 100
-    if tokens <= 0:
-      raise HTTPException(status_code=400, detail="Invalid token amount")
+  if not user_id:
+    raise HTTPException(status_code=400, detail="Missing client_reference_id")
+  if not amount_total:
+    raise HTTPException(status_code=400, detail="Missing amount_total")
 
-    pgd = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user_id).single().execute().data["premium_game_data"]
-    pgd["tokens"] = pgd["tokens"] + tokens
-    supabase.table("User_Login_Data").update({"premium_game_data": pgd}).eq("id", user_id).execute()
+  tokens = amount_total // 100
+  if tokens <= 0:
+    raise HTTPException(status_code=400, detail="Invalid token amount")
+
+  pgd = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user_id).single().execute().data["premium_game_data"]
+  pgd["tokens"] = pgd["tokens"] + tokens
+  supabase.table("User_Login_Data").update({"premium_game_data": pgd}).eq("id", user_id).execute()
 
   return {"status": "ok"}
