@@ -7,7 +7,7 @@ import os
 load_dotenv()
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-from routers.payments import router as payments_router
+from routers.payments import router as stripe_webhook_router
 from routers.tokens import router as tokens_router
 from routers.auction_house import router as auction_house_router
 from routers.mastery_scrolls import router as mastery_scrolls_router
@@ -28,7 +28,7 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-app.include_router(payments_router)
+app.include_router(stripe_webhook_router)
 app.include_router(tokens_router)
 app.include_router(auction_house_router)
 app.include_router(mastery_scrolls_router)
