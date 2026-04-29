@@ -9,14 +9,14 @@ SCROLL_TIERS = [
 ]
 
 MASTERY_SCROLLS = {
-  C.MASTERY_SCROLL_1_KEY:  {"display_name": C.MASTERY_SCROLL_1_NAME,  "token_cost": 5, "effect": "placeholder"},
-  C.MASTERY_SCROLL_2_KEY:  {"display_name": C.MASTERY_SCROLL_2_NAME,  "token_cost": 5, "effect": "placeholder"},
-  C.MASTERY_SCROLL_3_KEY:  {"display_name": C.MASTERY_SCROLL_3_NAME,  "token_cost": 5, "effect": "placeholder"},
-  C.MASTERY_SCROLL_4_KEY:  {"display_name": C.MASTERY_SCROLL_4_NAME,  "token_cost": 5, "effect": "placeholder"},
-  C.MASTERY_SCROLL_5_KEY:  {"display_name": C.MASTERY_SCROLL_5_NAME,  "token_cost": 5, "effect": "placeholder"},
-  C.MASTERY_SCROLL_6_KEY:  {"display_name": C.MASTERY_SCROLL_6_NAME,  "token_cost": 5, "effect": "placeholder"},
-  C.MASTERY_SCROLL_7_KEY:  {"display_name": C.MASTERY_SCROLL_7_NAME,  "token_cost": 5, "effect": "placeholder"},
-  C.MASTERY_SCROLL_8_KEY:  {"display_name": C.MASTERY_SCROLL_8_NAME,  "token_cost": 5, "effect": "placeholder"},
-  C.MASTERY_SCROLL_9_KEY:  {"display_name": C.MASTERY_SCROLL_9_NAME,  "token_cost": 5, "effect": "placeholder"},
-  C.MASTERY_SCROLL_10_KEY: {"display_name": C.MASTERY_SCROLL_10_NAME, "token_cost": 5, "effect": "placeholder"},
+  C.MASTERY_SCROLL_1_KEY:  {"token_cost": 5, "effect": "placeholder"},
+  C.MASTERY_SCROLL_2_KEY:  {"token_cost": 5, "effect": "placeholder"},
+  C.MASTERY_SCROLL_3_KEY:  {"token_cost": 5, "effect": "placeholder"},
+  C.MASTERY_SCROLL_4_KEY:  {"token_cost": 5, "effect": "placeholder"},
+  C.MASTERY_SCROLL_5_KEY:  {"token_cost": 5, "effect": "placeholder"},
+  C.MASTERY_SCROLL_6_KEY:  {"token_cost": 5, "effect": "placeholder"},
+  C.MASTERY_SCROLL_7_KEY:  {"token_cost": 5, "effect": "placeholder"},
+  C.MASTERY_SCROLL_8_KEY:  {"token_cost": 5, "effect": "placeholder"},
+  C.MASTERY_SCROLL_9_KEY:  {"token_cost": 5, "effect": "placeholder"},
+  C.MASTERY_SCROLL_10_KEY: {"token_cost": 5, "effect": "placeholder"},
 }
