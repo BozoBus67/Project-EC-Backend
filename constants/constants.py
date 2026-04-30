@@ -1,4 +1,5 @@
 SLOT_REEL_LENGTH = 10
+SLOT_ALPHABET_SIZE = 10
 
 BUILDING_1_KEY = "building_1"
 BUILDING_2_KEY = "building_2"
