@@ -3,6 +3,15 @@ from data.premium_game_data import INITIAL_PREMIUM_GAME_DATA
 from data.game_data import INITIAL_GAME_DATA
 
 def ensure_user_data_complete(user_uuid: str) -> dict:
+  """Reconcile a user's stored game_data and premium_game_data with the canonical
+  INITIAL_* shapes. Adds missing keys with their default values, and strips any
+  building keys no longer recognized.
+
+  Idempotent: safe to call repeatedly. A no-op for users whose data is already
+  in sync. Triggered at login and via the refresh button — feature endpoints
+  (e.g. /spin, /roulette_spin) deliberately do NOT auto-migrate, so a missing
+  key surfaces as an explicit error rather than being silently papered over.
+  """
   user = supabase.table("User_Login_Data").select("game_data, premium_game_data").eq("id", user_uuid).single().execute().data
   gd = user["game_data"] or {}
   pgd = user["premium_game_data"] or {}

@@ -9,11 +9,14 @@ from constants.constants import SLOT_REEL_LENGTH, SLOT_ALPHABET_SIZE
 
 router = APIRouter()
 
+# Slot machine config. The reel renders as 5 wheels; on stop, every value that
+# appears >=2 times is a win, with reward scaling by group size (REWARDS).
 SPIN_COST = 1
 REEL_COUNT = 5
 SCROLL_KEYS = list(MASTERY_SCROLLS.keys())
 REWARDS = {2: 1, 3: 3, 4: 10, 5: 100}
 
+# Roulette config. One wheel, one slot landed on, one scroll awarded.
 ROULETTE_SPIN_COST = 1
 ROULETTE_REWARD_AMOUNT = 1
 
