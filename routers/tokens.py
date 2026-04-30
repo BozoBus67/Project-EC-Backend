@@ -5,32 +5,80 @@ from services.auth import require_user
 
 router = APIRouter()
 
+def _now():
+  return datetime.now(timezone.utc)
+
+def _parse_ts(ts):
+  if ts is None:
+    return None
+  return datetime.fromisoformat(ts)
+
 @router.post("/daily_checkin")
 def daily_checkin(user=Depends(require_user)):
   result = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user.id).single().execute()
   pgd = result.data["premium_game_data"]
 
-  today = datetime.now(timezone.utc).date().isoformat()
+  today = _now().date().isoformat()
   last = pgd.get("last_login_date")
-  streak = pgd["login_streak"]
-  tokens = pgd["tokens"]
+  streak = pgd.get("login_streak", 0)
 
   if last == today:
     return {"already_checked_in": True, "streak": streak, "premium_game_data": pgd}
 
-  yesterday = (datetime.now(timezone.utc).date() - timedelta(days=1)).isoformat()
+  yesterday = (_now().date() - timedelta(days=1)).isoformat()
   streak = streak + 1 if last == yesterday else 1
-  tokens_to_grant = streak
+  tokens_granted = streak * 25
 
-  pgd["tokens"] = tokens + tokens_to_grant
+  pgd["tokens"] = pgd["tokens"] + tokens_granted
   pgd["last_login_date"] = today
   pgd["login_streak"] = streak
 
   supabase.table("User_Login_Data").update({"premium_game_data": pgd}).eq("id", user.id).execute()
 
-  return {
-    "already_checked_in": False,
-    "streak": streak,
-    "tokens_granted": tokens_to_grant,
-    "premium_game_data": pgd,
-  }
+  return {"already_checked_in": False, "streak": streak, "tokens_granted": tokens_granted, "premium_game_data": pgd}
+
+@router.post("/hourly_checkin")
+def hourly_checkin(user=Depends(require_user)):
+  result = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user.id).single().execute()
+  pgd = result.data["premium_game_data"]
+
+  now = _now()
+  last = _parse_ts(pgd.get("last_hourly_claim"))
+  streak = pgd.get("hourly_streak", 0)
+
+  if last is not None and (now - last) < timedelta(hours=1):
+    return {"already_checked_in": True, "streak": streak, "premium_game_data": pgd}
+
+  streak = streak + 1 if (last is not None and (now - last) < timedelta(hours=2)) else 1
+  tokens_granted = streak * 5
+
+  pgd["tokens"] = pgd["tokens"] + tokens_granted
+  pgd["last_hourly_claim"] = now.isoformat()
+  pgd["hourly_streak"] = streak
+
+  supabase.table("User_Login_Data").update({"premium_game_data": pgd}).eq("id", user.id).execute()
+
+  return {"already_checked_in": False, "streak": streak, "tokens_granted": tokens_granted, "premium_game_data": pgd}
+
+@router.post("/fivemin_checkin")
+def fivemin_checkin(user=Depends(require_user)):
+  result = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user.id).single().execute()
+  pgd = result.data["premium_game_data"]
+
+  now = _now()
+  last = _parse_ts(pgd.get("last_5min_claim"))
+  streak = pgd.get("fivemin_streak", 0)
+
+  if last is not None and (now - last) < timedelta(minutes=5):
+    return {"already_checked_in": True, "streak": streak, "premium_game_data": pgd}
+
+  streak = streak + 1 if (last is not None and (now - last) < timedelta(minutes=10)) else 1
+  tokens_granted = streak * 1
+
+  pgd["tokens"] = pgd["tokens"] + tokens_granted
+  pgd["last_5min_claim"] = now.isoformat()
+  pgd["fivemin_streak"] = streak
+
+  supabase.table("User_Login_Data").update({"premium_game_data": pgd}).eq("id", user.id).execute()
+
+  return {"already_checked_in": False, "streak": streak, "tokens_granted": tokens_granted, "premium_game_data": pgd}
