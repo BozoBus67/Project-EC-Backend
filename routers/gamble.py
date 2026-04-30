@@ -15,6 +15,9 @@ REEL_COUNT = 5
 SCROLL_KEYS = list(MASTERY_SCROLLS.keys())
 REWARDS = {2: 1, 3: 3, 4: 10, 5: 100}
 
+ROULETTE_SPIN_COST = 1
+ROULETTE_REWARD_AMOUNT = 1
+
 @router.post("/spin")
 def spin(user=Depends(require_user)):
   tokens_remaining = spend_tokens(user.id, SPIN_COST)
@@ -33,3 +36,10 @@ def spin(user=Depends(require_user)):
     win = {"scroll_id": scroll_id, "amount": amount}
 
   return {"sequences": sequences, "subset_indices": subset_indices, "tokens_remaining": tokens_remaining, "win": win}
+
+@router.post("/roulette_spin")
+def roulette_spin(user=Depends(require_user)):
+  tokens_remaining = spend_tokens(user.id, ROULETTE_SPIN_COST)
+  scroll_id = random.choice(SCROLL_KEYS)
+  increase_mastery_scroll(user.id, scroll_id, ROULETTE_REWARD_AMOUNT)
+  return {"tokens_remaining": tokens_remaining, "scroll_id": scroll_id}
