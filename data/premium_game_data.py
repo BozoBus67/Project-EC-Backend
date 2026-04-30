@@ -1,6 +1,6 @@
 INITIAL_PREMIUM_GAME_DATA = {
   "tokens": 0,
-  "account_tier": "free",
+  "account_tier": "account_tier_0",
   "login_streak": 0,
   "last_login_date": None,
   "hourly_streak": 0,
