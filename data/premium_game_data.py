@@ -31,6 +31,7 @@ INITIAL_PREMIUM_GAME_DATA = {
   "mastery_scroll_22": 0,
   "mastery_scroll_23": 0,
   "mastery_scroll_24": 0,
+  "mastery_scroll_25": 0,
   "redeemed": {},
   "theme": "default",
   "chess_beaten_bots": [],

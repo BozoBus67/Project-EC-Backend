@@ -3,7 +3,7 @@ import pytest
 from services.slots import compute_wins
 
 REWARDS = {2: 1, 3: 3, 4: 10, 5: 100}
-SCROLL_KEYS = [f"mastery_scroll_{i}" for i in range(1, 25)]
+SCROLL_KEYS = [f"mastery_scroll_{i}" for i in range(1, 26)]
 SUBSET = [10, 11, 12, 13, 14, 15]
 
 S = lambda i: SCROLL_KEYS[SUBSET[i]]  # readable shortcut: S(0) == "mastery_scroll_11"

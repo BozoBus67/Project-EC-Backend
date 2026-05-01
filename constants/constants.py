@@ -39,6 +39,7 @@ MASTERY_SCROLL_21_KEY = "mastery_scroll_21"
 MASTERY_SCROLL_22_KEY = "mastery_scroll_22"
 MASTERY_SCROLL_23_KEY = "mastery_scroll_23"
 MASTERY_SCROLL_24_KEY = "mastery_scroll_24"
+MASTERY_SCROLL_25_KEY = "mastery_scroll_25"
 
 ACCOUNT_TIER_0_ID = "account_tier_0"
 ACCOUNT_TIER_1_ID = "account_tier_1"

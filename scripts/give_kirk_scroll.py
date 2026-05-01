@@ -6,7 +6,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 from db.client import supabase
 
 USERNAME = "user1"
-SCROLL_ID = "mastery_scroll_4"  # Charlie Kirk
+SCROLL_ID = "mastery_scroll_5"  # Charlie Kirk
 AMOUNT = 1
 
 row = supabase.table("User_Login_Data").select("id, premium_game_data").eq("username", USERNAME).single().execute().data
