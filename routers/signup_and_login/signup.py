@@ -4,6 +4,7 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from supabase import create_client, ClientOptions
+from supabase_auth.errors import AuthApiError, AuthWeakPasswordError
 
 from data.game_data import INITIAL_GAME_DATA
 from data.premium_game_data import INITIAL_PREMIUM_GAME_DATA
@@ -27,25 +28,26 @@ class SignUpRequest(BaseModel):
 
 @router.post("/signup")
 def signup(body: SignUpRequest):
-  # Step 1: create user in Supabase auth (email_confirm=True skips email verification)
+  # Step 1: create user in Supabase auth (email_confirm=True skips email verification).
+  # Supabase exposes typed exception classes with structured `.code` and `.status`,
+  # so we match on those rather than substring-matching the human-readable message.
   try:
     auth_result = supabase.auth.admin.create_user({
       "email": body.email,
       "password": body.password,
       "email_confirm": True,
     })
-  except Exception as e:
-    print(f"[signup] create_user error: {e}")
-    msg = str(e).lower()
-    if "already registered" in msg or "already exists" in msg:
+  except AuthWeakPasswordError as e:
+    raise HTTPException(status_code=400, detail=f"Weak password: {'; '.join(e.reasons)}")
+  except AuthApiError as e:
+    print(f"[signup] create_user error: code={e.code} status={e.status} message={e.message}")
+    if e.code in ("email_exists", "user_already_exists"):
       raise HTTPException(status_code=409, detail="Email already registered")
-    if "unable to validate" in msg or "invalid email" in msg:
+    if e.code == "email_address_invalid":
       raise HTTPException(status_code=400, detail="Invalid email address")
-    if "password" in msg:
-      raise HTTPException(status_code=400, detail="Invalid password format")
-    if "rate limit" in msg or "too many" in msg:
+    if e.code == "over_email_send_rate_limit":
       raise HTTPException(status_code=429, detail="Too many signup attempts — try again later")
-    raise HTTPException(status_code=500, detail=f"Auth service error: {e}")
+    raise HTTPException(status_code=e.status or 500, detail=e.message)
 
   user_id = auth_result.user.id
 

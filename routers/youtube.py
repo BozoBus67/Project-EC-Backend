@@ -7,7 +7,13 @@ output to the frontend.
 
 The playlist refreshes from YouTube every 5 minutes — quick enough that a
 song added to the playlist on youtube.com appears in the app shortly, slow
-enough that a hot reload loop doesn't burn quota."""
+enough that a hot reload loop doesn't burn quota.
+
+Startup posture mirrors services/analytics.py: a missing env var prints a
+loud DISABLED line at import time (visible in uvicorn / Render logs) but
+does NOT crash the app — music is non-essential to the rest of the game.
+The endpoint itself returns 503 when disabled, so the frontend surfaces a
+real "music unavailable" message instead of a generic 500."""
 
 import os
 import time
@@ -19,10 +25,12 @@ router = APIRouter()
 
 YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "").strip()
 YOUTUBE_PLAYLIST_ID = os.environ.get("YOUTUBE_PLAYLIST_ID", "").strip()
-if not YOUTUBE_API_KEY:
-  raise RuntimeError("YOUTUBE_API_KEY env var is required (set it in backend/.env or Render dashboard)")
-if not YOUTUBE_PLAYLIST_ID:
-  raise RuntimeError("YOUTUBE_PLAYLIST_ID env var is required (set it in backend/.env or Render dashboard)")
+_missing = [k for k, v in (("YOUTUBE_API_KEY", YOUTUBE_API_KEY), ("YOUTUBE_PLAYLIST_ID", YOUTUBE_PLAYLIST_ID)) if not v]
+_enabled = not _missing
+if _enabled:
+  print("[youtube] enabled", flush=True)
+else:
+  print(f"[youtube] DISABLED — missing env: {', '.join(_missing)}. /youtube_playlist will return 503.", flush=True)
 
 CACHE_TTL_SECONDS = 5 * 60
 
@@ -31,6 +39,8 @@ _cache: dict = {"fetched_at": 0.0, "entries": []}
 
 @router.get("/youtube_playlist")
 async def get_youtube_playlist():
+  if not _enabled:
+    raise HTTPException(status_code=503, detail="Music playlist is unavailable (server not configured).")
   now = time.time()
   if now - _cache["fetched_at"] < CACHE_TTL_SECONDS and _cache["entries"]:
     return _cache["entries"]

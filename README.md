@@ -1,3 +1,5 @@
+> ⚠️ AI-generated, not yet proofread by a human. Treat as tech debt.
+
 # Backend
 
 FastAPI service backing the Epstein Clicker frontend. Talks to Supabase (Postgres + auth) and Stripe (purchases). Deployed on Render; the frontend talks to it over HTTPS.
@@ -17,8 +19,7 @@ The one place we deliberately use `.get(key, default)` is `services/migrations.p
 - `constants/` — magic numbers used across the codebase (slot reel size, alphabet size, account-tier IDs and prices).
 - `db/` — the singleton Supabase client used by everything that reads/writes Postgres.
 - `tests/` — pytest suite. Runs without network: `_fake_supabase.py` is a chainable stub for the supabase client, and `conftest.py` sets dummy env vars so `db/client.py` imports cleanly.
-- `scripts/` — one-off migration scripts. Not imported by the app. Run manually with `python scripts/<name>.py` from the backend root.
-- `give_floyd_scroll.py` / `give_tokens.py` — dev convenience scripts at the root for granting yourself state during local testing.
+- `scripts/` — one-off migration scripts and dev-convenience scripts (e.g. `give_tokens.py`, `give_floyd_scroll.py` for granting yourself state during local testing). Not imported by the app. Run manually with `python scripts/<name>.py` from the backend root.
 
 ## Conventions
 
@@ -54,12 +55,10 @@ The backend works but is rough around the edges. Before adding more features, co
 
    Fix paths, in order of effort: a Postgres RPC function that does `update ... set premium_game_data = jsonb_set(premium_game_data, '{tokens}', (premium_game_data->>'tokens')::int + $1)` atomically; or pull the high-churn fields out of JSONB into proper columns and use `update users set tokens = tokens + $1`; or wrap each endpoint in a row-level lock (`select ... for update`) inside a transaction.
 
-2. **`scripts/migrate_free_tier.py` may be dead.** It's a one-off migration that converted the old `account_tier == "free"` value to `"account_tier_0"`. If every row has been migrated, the script is dead weight and should be deleted (with the commit message preserving the historical reason it existed).
+2. **Tracked `__pycache__/`.** `.pyc` files were committed before `__pycache__/` was added to `.gitignore`, so they're still tracked. Run `git rm -r --cached '**/__pycache__'` (and commit) to stop tracking them — they show up as noise in every diff.
 
-3. **Tracked `__pycache__/`.** The repo has `.pyc` files committed under multiple `__pycache__/` directories. Add `__pycache__/` to `.gitignore` and `git rm -r --cached '**/__pycache__'` to stop tracking them. They show up as noise in every diff.
+3. **No type annotations on most service functions.** Adding return types and arg types would let `mypy` (or just IDE inference) catch the kind of "forgot to handle a None" bug that currently only surfaces at runtime.
 
-4. **`give_floyd_scroll.py` / `give_tokens.py` at the backend root.** These are dev tools; they'd be cleaner inside `scripts/` next to the migration. Low priority but worth doing during the next cleanup pass.
-
-5. **No type annotations on most service functions.** Adding return types and arg types would let `mypy` (or just IDE inference) catch the kind of "forgot to handle a None" bug that currently only surfaces at runtime.
+4. **No automatic migration runner / migration tests.** `services/migrations.py::ensure_user_data_complete` runs at login and the refresh button, which works but isn't a real migration system. As schema evolves, it'd be cleaner to have a `scripts/generate_migration.py` that creates dated migration files plus pytest cases for each. Listed here so we don't forget — `scripts/migrate_free_tier.py` was deleted as dead weight (it converted the old `account_tier == "free"` to `"account_tier_0"` and is no longer needed).
 
 When picking up any of these, think about the *root cause* before patching the symptom (especially #1 — it's tempting to put a try/except around the symptom, but that just hides the corruption).

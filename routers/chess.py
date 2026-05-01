@@ -23,9 +23,9 @@ def mark_chess_bot_beaten(body: MarkBotBeatenRequest, user=Depends(require_user)
     raise HTTPException(status_code=400, detail=f"Unknown chess bot id '{body.bot_id}'")
 
   pgd = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user.id).single().execute().data["premium_game_data"]
-  beaten = pgd.get("chess_beaten_bots", [])
+  beaten = pgd["chess_beaten_bots"]
   if body.bot_id not in beaten:
     beaten.append(body.bot_id)
     pgd["chess_beaten_bots"] = beaten
     supabase.table("User_Login_Data").update({"premium_game_data": pgd}).eq("id", user.id).execute()
-  return {"chess_beaten_bots": pgd.get("chess_beaten_bots", [])}
+  return {"chess_beaten_bots": pgd["chess_beaten_bots"]}

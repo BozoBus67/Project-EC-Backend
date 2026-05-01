@@ -21,8 +21,8 @@ def daily_checkin(user=Depends(require_user)):
   pgd = result.data["premium_game_data"]
 
   today = _now().date().isoformat()
-  last = pgd.get("last_login_date")
-  streak = pgd.get("login_streak", 0)
+  last = pgd["last_login_date"]
+  streak = pgd["login_streak"]
 
   if last == today:
     return {"already_checked_in": True, "streak": streak, "premium_game_data": pgd}
@@ -45,8 +45,8 @@ def hourly_checkin(user=Depends(require_user)):
   pgd = result.data["premium_game_data"]
 
   now = _now()
-  last = _parse_ts(pgd.get("last_hourly_claim"))
-  streak = pgd.get("hourly_streak", 0)
+  last = _parse_ts(pgd["last_hourly_claim"])
+  streak = pgd["hourly_streak"]
 
   if last is not None and (now - last) < timedelta(hours=1):
     return {"already_checked_in": True, "streak": streak, "premium_game_data": pgd}
@@ -68,8 +68,8 @@ def fivemin_checkin(user=Depends(require_user)):
   pgd = result.data["premium_game_data"]
 
   now = _now()
-  last = _parse_ts(pgd.get("last_5min_claim"))
-  streak = pgd.get("fivemin_streak", 0)
+  last = _parse_ts(pgd["last_5min_claim"])
+  streak = pgd["fivemin_streak"]
 
   if last is not None and (now - last) < timedelta(minutes=5):
     return {"already_checked_in": True, "streak": streak, "premium_game_data": pgd}
