@@ -37,7 +37,7 @@ def three_assumptions_poisson(body: ThreeAssumptionsRequest, user=Depends(requir
   # Track every correct submission, not just the first one — gives us a sense
   # of how many people figured out the meme. Already-redeemed retries still
   # count as "they got it right."
-  analytics_capture(distinct_id=user.id, event="poisson_correct")
+  analytics_capture(distinct_id=user.id, event="ur_mom_fat_and_gay_collected")
   pgd = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user.id).single().execute().data["premium_game_data"]
   if pgd["redeemed"].get("poisson"):
     return {"correct": True, "already_redeemed": True}
