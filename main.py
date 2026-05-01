@@ -23,6 +23,7 @@ from routers.signup_and_login.login import router as login_router
 from routers.signup_and_login.me import router as me_router
 from routers.signup_and_login.signup import router as signup_router
 from routers.tokens import router as tokens_router
+from routers.youtube import router as youtube_router
 
 app = FastAPI()
 
@@ -47,6 +48,7 @@ app.include_router(chess_router)
 app.include_router(three_assumptions_poisson_router)
 app.include_router(buildings_router)
 app.include_router(analytics_router)
+app.include_router(youtube_router)
 
 @app.get("/")
 def root():
