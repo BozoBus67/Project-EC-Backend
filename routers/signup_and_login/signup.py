@@ -11,10 +11,23 @@ from data.premium_game_data import INITIAL_PREMIUM_GAME_DATA
 from db.client import supabase
 
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+# Optional. When set, the signup notification will mention this Discord user
+# so they get a real push notification instead of a quiet channel post. Get
+# your ID via Discord settings → Advanced → Developer Mode → right-click your
+# name → Copy User ID. Leave unset to skip the ping.
+DISCORD_PING_USER_ID = os.getenv("DISCORD_PING_USER_ID")
 
 def notify_discord_signup(username: str, email: str):
+  ping_prefix = f"<@{DISCORD_PING_USER_ID}> " if DISCORD_PING_USER_ID else ""
+  payload = {"content": f"{ping_prefix}New signup: **{username}** ({email})"}
+  if DISCORD_PING_USER_ID:
+    # Webhook mentions are silent by default — Discord requires the user id
+    # to also appear in `allowed_mentions.users` for the ping to actually
+    # deliver as a notification. Without this the `<@id>` renders as plain
+    # text in the channel.
+    payload["allowed_mentions"] = {"users": [DISCORD_PING_USER_ID]}
   try:
-    res = httpx.post(DISCORD_WEBHOOK_URL, json={"content": f"New signup: **{username}** ({email})"})
+    res = httpx.post(DISCORD_WEBHOOK_URL, json=payload)
     print(f"[discord] status={res.status_code} body={res.text}")
   except Exception as e:
     print(f"[discord] error: {e}")
