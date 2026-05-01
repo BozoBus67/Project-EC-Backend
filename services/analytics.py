@@ -46,11 +46,5 @@ def capture(distinct_id: str, event: str, properties: dict | None = None):
     return
   try:
     client.capture(distinct_id=distinct_id, event=event, properties=properties or {})
-    # Force the queued event out NOW instead of waiting for the SDK's 5-second
-    # batch timer. On Render's free tier the worker can sleep or recycle inside
-    # that window, killing queued events that never had a chance to flush.
-    # Cost: ~50-150ms per request for the network round-trip to PostHog.
-    # Acceptable at our scale (friends, low volume); revisit if traffic grows.
-    client.flush()
   except Exception:
     print(f"[analytics] capture failed for event={event}", flush=True)
