@@ -34,4 +34,5 @@ INITIAL_PREMIUM_GAME_DATA = {
   "redeemed": {},
   "theme": "default",
   "chess_beaten_bots": [],
+  "kirk_mode": False,
 }

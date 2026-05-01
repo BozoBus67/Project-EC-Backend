@@ -50,6 +50,21 @@ def update_theme(body: UpdateThemeRequest, user=Depends(require_user)):
   supabase.table("User_Login_Data").update({"premium_game_data": pgd}).eq("id", user.id).execute()
   return {"theme": body.theme}
 
+class UpdateKirkModeRequest(BaseModel):
+  enabled: bool
+
+@router.patch("/me/kirk_mode")
+def update_kirk_mode(body: UpdateKirkModeRequest, user=Depends(require_user)):
+  pgd = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user.id).single().execute().data["premium_game_data"]
+  # Toggling ON requires owning the Charlie Kirk scroll. Toggling OFF is
+  # always allowed — even if the scroll was somehow lost, users can still
+  # disable a mode they no longer own (avoids stuck-on UX).
+  if body.enabled and pgd["mastery_scroll_4"] < 1:
+    raise HTTPException(status_code=403, detail="You need at least 1 Charlie Kirk mastery scroll to unlock Kirk Mode.")
+  pgd["kirk_mode"] = body.enabled
+  supabase.table("User_Login_Data").update({"premium_game_data": pgd}).eq("id", user.id).execute()
+  return {"kirk_mode": body.enabled}
+
 @router.get("/my_discord")
 def my_discord(user=Depends(require_user)):
   result = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user.id).single().execute()
