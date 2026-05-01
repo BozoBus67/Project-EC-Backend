@@ -15,6 +15,12 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 def login(body: LoginRequest):
+  # Why this endpoint exists at all (since Supabase auth is a separate service
+  # and the frontend could call signInWithPassword directly): we support login
+  # by either username or email. Username → email resolution requires reading
+  # User_Login_Data, which is RLS-locked to the service role only — so the
+  # frontend can't do this itself before the user has a JWT. We do the lookup
+  # here, then call Supabase's sign_in_with_password with the resolved email.
   email = body.username_or_email
 
   if "@" not in body.username_or_email:
