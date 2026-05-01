@@ -98,6 +98,22 @@ def test_rejects_when_not_enough_tokens(patched_module):
   assert fake.last_update is None
 
 
+def test_when_both_token_shortage_and_skip_tier_show_token_shortage(patched_module):
+  # Pin the precedence: if both rules would reject, "not enough tokens" wins
+  # because it's the more actionable message for the user.
+  account_tiers, fake = patched_module
+  target_tier = ACCOUNT_TIERS[3]  # skipping past tier 2
+  fake.row = _row_with("account_tier_1", tokens=target_tier["token_price"] - 1)
+
+  with pytest.raises(HTTPException) as exc:
+    account_tiers.buy_account_tier(account_tiers.BuyTierRequest(tier_id=target_tier["id"]), user=_user())
+
+  assert exc.value.status_code == 400
+  assert "not enough tokens" in exc.value.detail.lower()
+  assert "previous tier" not in exc.value.detail.lower()
+  assert fake.last_update is None
+
+
 def test_successful_purchase_deducts_tokens_and_advances_tier(patched_module):
   account_tiers, fake = patched_module
   next_tier = ACCOUNT_TIERS[1]
