@@ -40,7 +40,7 @@ def signup(body: SignUpRequest):
     if "unable to validate" in msg or "invalid email" in msg:
       raise HTTPException(status_code=400, detail="Invalid email address")
     if "password" in msg:
-      raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+      raise HTTPException(status_code=400, detail="Invalid password format")
     if "rate limit" in msg or "too many" in msg:
       raise HTTPException(status_code=429, detail="Too many signup attempts — try again later")
     raise HTTPException(status_code=500, detail=f"Auth service error: {e}")
