@@ -16,7 +16,6 @@ from routers.buildings import router as buildings_router
 from routers.chess import router as chess_router
 from routers.gamble import router as gamble_router
 from routers.game_data import router as game_data_router
-from routers.mastery_scrolls import router as mastery_scrolls_router
 from routers.payments import router as stripe_webhook_router
 from routers.redeem.promotion_oath import router as promotion_oath_router
 from routers.redeem.three_assumptions_poisson import router as three_assumptions_poisson_router
@@ -38,7 +37,6 @@ app.add_middleware(
 app.include_router(stripe_webhook_router)
 app.include_router(tokens_router)
 app.include_router(auction_house_router)
-app.include_router(mastery_scrolls_router)
 app.include_router(signup_router)
 app.include_router(login_router)
 app.include_router(me_router)
