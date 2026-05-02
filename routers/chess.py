@@ -10,7 +10,16 @@ router = APIRouter()
 # A chess bot's id is either a scroll slug (e.g. "charlie_kirk") or the
 # special "epstein" boss id. The naming is "bot_id" rather than "scroll_id"
 # because the value isn't always a scroll — Epstein in particular isn't.
-VALID_BOT_IDS = set(list(MASTERY_SCROLLS.keys()) + ["epstein"])
+EPSTEIN_BOT_ID = "epstein"
+
+# Slugs in MASTERY_SCROLLS that don't map to a chess bot. Mirror of the
+# `chess_elo: null` flag in vite_part_react/src/shared/scroll_registry.js.
+# Keep in sync with the frontend — the drift is small (one slug today) and
+# enforced by the regular-bots gate below.
+EXCLUDED_FROM_CHESS = {"blurry_epstein"}
+
+REGULAR_BOT_SLUGS = set(MASTERY_SCROLLS.keys()) - EXCLUDED_FROM_CHESS
+VALID_BOT_IDS = REGULAR_BOT_SLUGS | {EPSTEIN_BOT_ID}
 
 
 class MarkBotBeatenRequest(BaseModel):
@@ -24,6 +33,14 @@ def mark_chess_bot_beaten(body: MarkBotBeatenRequest, user=Depends(require_user)
 
   pgd = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user.id).single().execute().data["premium_game_data"]
   beaten = pgd["chess_beaten_bots"]
+
+  # Epstein is gated: must beat every regular bot first. Frontend already
+  # enforces this visually, but a hand-crafted POST shouldn't be able to skip
+  # the grind. Self-cheating prevention.
+  if body.bot_id == EPSTEIN_BOT_ID and not REGULAR_BOT_SLUGS.issubset(beaten):
+    missing = sorted(REGULAR_BOT_SLUGS - set(beaten))
+    raise HTTPException(status_code=403, detail=f"Beat every regular bot before challenging Epstein. Still missing: {missing}")
+
   if body.bot_id not in beaten:
     beaten.append(body.bot_id)
     pgd["chess_beaten_bots"] = beaten
