@@ -31,7 +31,7 @@ MASTERY_SCROLLS = {
   "roy_lee":             {},
   "state_trooper_cop":   {},
   "stephen_hawking":     {},
-  "tun_tun_tun_sahur":   {},
+  "tung_tung_tung_sahur": {},
   "walter_white":        {},
 }
 

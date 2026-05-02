@@ -48,7 +48,7 @@ OLD_TO_SLUG = {
   "mastery_scroll_21": "roy_lee",
   "mastery_scroll_22": "state_trooper_cop",
   "mastery_scroll_23": "stephen_hawking",
-  "mastery_scroll_24": "tun_tun_tun_sahur",
+  "mastery_scroll_24": "tung_tung_tung_sahur",
   "mastery_scroll_25": "walter_white",
 }
 

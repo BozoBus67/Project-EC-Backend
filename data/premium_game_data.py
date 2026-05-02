@@ -30,7 +30,7 @@ INITIAL_PREMIUM_GAME_DATA = {
   "roy_lee":             0,
   "state_trooper_cop":   0,
   "stephen_hawking":     0,
-  "tun_tun_tun_sahur":   0,
+  "tung_tung_tung_sahur": 0,
   "walter_white":        0,
   "redeemed": {},
   "theme": "default",
