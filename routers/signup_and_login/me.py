@@ -42,9 +42,9 @@ def update_theme(body: UpdateThemeRequest, user=Depends(require_user)):
   if body.theme not in ("default", "light", "dark"):
     raise HTTPException(status_code=400, detail="theme must be 'default', 'light', or 'dark'")
   pgd = supabase.table("User_Login_Data").select("premium_game_data").eq("id", user.id).single().execute().data["premium_game_data"]
-  if body.theme == "dark" and pgd["mastery_scroll_13"] < 1:
+  if body.theme == "dark" and pgd["george_floyd"] < 1:
     raise HTTPException(status_code=403, detail="You need at least 1 George Floyd mastery scroll to unlock dark mode.")
-  if body.theme == "light" and pgd["mastery_scroll_22"] < 1:
+  if body.theme == "light" and pgd["state_trooper_cop"] < 1:
     raise HTTPException(status_code=403, detail="You need at least 1 State Trooper mastery scroll to unlock light mode.")
   pgd["theme"] = body.theme
   supabase.table("User_Login_Data").update({"premium_game_data": pgd}).eq("id", user.id).execute()
@@ -59,7 +59,7 @@ def update_kirk_mode(body: UpdateKirkModeRequest, user=Depends(require_user)):
   # Toggling ON requires owning the Charlie Kirk scroll. Toggling OFF is
   # always allowed — even if the scroll was somehow lost, users can still
   # disable a mode they no longer own (avoids stuck-on UX).
-  if body.enabled and pgd["mastery_scroll_5"] < 1:
+  if body.enabled and pgd["charlie_kirk"] < 1:
     raise HTTPException(status_code=403, detail="You need at least 1 Charlie Kirk mastery scroll to unlock Kirk Mode.")
   pgd["kirk_mode"] = body.enabled
   supabase.table("User_Login_Data").update({"premium_game_data": pgd}).eq("id", user.id).execute()

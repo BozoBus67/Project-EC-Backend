@@ -15,8 +15,7 @@ def increase_mastery_scroll(user_uuid: str, scroll_id: str, amount: int = 1):
 
 
 def get_scroll_tier(count: int) -> int:
-  tier = 0
   for t in SCROLL_TIERS:
     if count >= t["min"]:
-      tier = t["tier"]
-  return tier
+      return t["tier"]
+  return 0

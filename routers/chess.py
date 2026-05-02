@@ -7,9 +7,9 @@ from services.auth import require_user
 
 router = APIRouter()
 
-# A chess bot's id is either a mastery_scroll_* string or the special "epstein"
-# boss id. The naming is "bot_id" rather than "scroll_id" because the value
-# isn't always a scroll — Epstein in particular isn't.
+# A chess bot's id is either a scroll slug (e.g. "charlie_kirk") or the
+# special "epstein" boss id. The naming is "bot_id" rather than "scroll_id"
+# because the value isn't always a scroll — Epstein in particular isn't.
 VALID_BOT_IDS = set(list(MASTERY_SCROLLS.keys()) + ["epstein"])
 
 
