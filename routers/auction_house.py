@@ -25,7 +25,10 @@ class CreateListingRequest(BaseModel):
   price: int
 
 class ListingRequest(BaseModel):
-  listing_id: str
+  # Auction_House.id is a Supabase-generated bigint, so the JSON body sends
+  # this as a number. Pydantic v2 won't coerce int → str, so typing this as
+  # `str` causes a 422 on every buy/cancel.
+  listing_id: int
 
 @router.post("/create_listing")
 def create_listing(body: CreateListingRequest, user=Depends(_REQUIRE_AUCTION_TIER)):
