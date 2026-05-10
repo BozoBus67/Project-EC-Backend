@@ -7,7 +7,14 @@ from pydantic import BaseModel
 from db.client import supabase
 from services.auth import require_user
 from services.cookies import add_cookies, spend_cookies
+from services.gates import require_min_tier
 from services.tokens import add_tokens, spend_tokens
+
+# Auction transactions are gated to Pro tier (2) — mirrors the frontend
+# tier-locked modal. Cancelling your own listing stays open: it's a self-action,
+# not a transaction, and a hypothetical downgraded-from-Pro user should still
+# be able to back out of their own past listings.
+_REQUIRE_AUCTION_TIER = require_min_tier(2)
 
 router = APIRouter()
 
@@ -21,7 +28,7 @@ class ListingRequest(BaseModel):
   listing_id: str
 
 @router.post("/create_listing")
-def create_listing(body: CreateListingRequest, user=Depends(require_user)):
+def create_listing(body: CreateListingRequest, user=Depends(_REQUIRE_AUCTION_TIER)):
   if body.amount <= 0 or body.price <= 0:
     raise HTTPException(status_code=400, detail="Amount and price must be positive")
 
@@ -51,7 +58,7 @@ def get_listings():
   return result.data
 
 @router.post("/buy_listing")
-def buy_listing(body: ListingRequest, user=Depends(require_user)):
+def buy_listing(body: ListingRequest, user=Depends(_REQUIRE_AUCTION_TIER)):
   listing_result = supabase.table("Auction_House").select("*").eq("id", body.listing_id).single().execute()
   if not listing_result.data:
     raise HTTPException(status_code=404, detail="Listing not found")
