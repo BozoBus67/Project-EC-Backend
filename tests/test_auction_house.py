@@ -127,7 +127,7 @@ def test_buy_listing_token_priced_charges_buyer_and_pays_seller(monkeypatch):
   monkeypatch.setattr(auction_house, "add_tokens", lambda uid, amt: add_tokens_calls.append((uid, amt)) or 0)
   monkeypatch.setattr(auction_house, "add_cookies", lambda uid, amt: add_cookies_calls.append((uid, amt)) or 0)
 
-  result = auction_house.buy_listing(auction_house.ListingRequest(listing_id="L1"), user=_user("buyer-1"))
+  result = auction_house.buy_listing(auction_house.ListingRequest(listing_id=1), user=_user("buyer-1"))
 
   assert spend_tokens_calls == [("buyer-1", 5)]
   assert add_tokens_calls == [("seller-uuid", 5)]
@@ -153,7 +153,7 @@ def test_buy_listing_cookie_priced_uses_cookie_helpers(monkeypatch):
   monkeypatch.setattr(auction_house, "add_cookies", lambda uid, amt: add_cookies_calls.append((uid, amt)) or 0)
   monkeypatch.setattr(auction_house, "add_tokens", lambda uid, amt: add_tokens_calls.append((uid, amt)) or 0)
 
-  result = auction_house.buy_listing(auction_house.ListingRequest(listing_id="L1"), user=_user("buyer-1"))
+  result = auction_house.buy_listing(auction_house.ListingRequest(listing_id=1), user=_user("buyer-1"))
 
   assert spend_cookies_calls == [("buyer-1", 200)]
   assert add_cookies_calls == [("seller-uuid", 200)]
@@ -172,7 +172,7 @@ def test_buy_listing_rejects_buying_own_listing(monkeypatch):
   monkeypatch.setattr(auction_house, "supabase", fake)
 
   with pytest.raises(HTTPException) as exc:
-    auction_house.buy_listing(auction_house.ListingRequest(listing_id="L1"), user=_user("buyer-1"))
+    auction_house.buy_listing(auction_house.ListingRequest(listing_id=1), user=_user("buyer-1"))
 
   assert exc.value.status_code == 400
   assert "own listing" in exc.value.detail.lower()
@@ -186,7 +186,22 @@ def test_buy_listing_404_when_listing_missing(monkeypatch):
   monkeypatch.setattr(auction_house, "supabase", fake)
 
   with pytest.raises(HTTPException) as exc:
-    auction_house.buy_listing(auction_house.ListingRequest(listing_id="L999"), user=_user())
+    auction_house.buy_listing(auction_house.ListingRequest(listing_id=999), user=_user())
 
   assert exc.value.status_code == 404
   assert "not found" in exc.value.detail.lower()
+
+
+def test_listing_request_validates_int_from_json_body():
+  """Regression: Auction_House.id is a Supabase bigint, so the inbound JSON
+  body has `listing_id` as a number. Pydantic v2 won't coerce int → str, so
+  if anyone retypes this field as `str` again, every buy/cancel returns 422.
+
+  The other tests in this file construct ListingRequest in Python directly,
+  which doesn't exercise the JSON-parsing path FastAPI uses. Use
+  `model_validate` here to mimic that path explicitly.
+  """
+  from routers import auction_house
+
+  body = auction_house.ListingRequest.model_validate({"listing_id": 7})
+  assert body.listing_id == 7
