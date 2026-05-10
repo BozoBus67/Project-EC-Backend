@@ -10,10 +10,10 @@ from services.cookies import add_cookies, spend_cookies
 from services.gates import require_min_tier
 from services.tokens import add_tokens, spend_tokens
 
-# Auction transactions are gated to Pro tier (2) — mirrors the frontend
-# tier-locked modal. Cancelling your own listing stays open: it's a self-action,
-# not a transaction, and a hypothetical downgraded-from-Pro user should still
-# be able to back out of their own past listings.
+# All auction interactions (create, buy, cancel) are gated to Pro tier (2),
+# mirroring the frontend tier-locked modal. Cancel is gated too because tier
+# upgrades are one-way in this app — there's no path for a Pro user to drop
+# below Pro, so "downgraded user with stale own listings" isn't a real scenario.
 _REQUIRE_AUCTION_TIER = require_min_tier(2)
 
 router = APIRouter()
@@ -88,7 +88,7 @@ def buy_listing(body: ListingRequest, user=Depends(_REQUIRE_AUCTION_TIER)):
   return {"status": "ok", "listing": listing, "game_data": buyer_data["game_data"], "premium_game_data": buyer_data["premium_game_data"]}
 
 @router.post("/cancel_listing")
-def cancel_listing(body: ListingRequest, user=Depends(require_user)):
+def cancel_listing(body: ListingRequest, user=Depends(_REQUIRE_AUCTION_TIER)):
   listing_result = supabase.table("Auction_House").select("*").eq("id", body.listing_id).single().execute()
   if not listing_result.data:
     raise HTTPException(status_code=404, detail="Listing not found")
